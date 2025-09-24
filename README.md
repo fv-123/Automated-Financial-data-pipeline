@@ -32,6 +32,8 @@ The pipeline is organized into the following stages:
     <div align = "center"> Figure 3: Prices and Fundamentals ERD defined using Star Schema </div>
 <br>
     - Pivot key indicators into columns for easier analysis.
+    <img width="1211" height="552" alt="image" src="https://github.com/user-attachments/assets/ed2f3ebc-8812-4d35-951d-8e9c0f4f7fdd" />
+
     - Supports toggling between individual indicators or category-based groups.
 4. **Output**
     - Temporary or permanent dataset views for downstream analysis.
