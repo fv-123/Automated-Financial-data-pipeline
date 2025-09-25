@@ -1,40 +1,99 @@
 NOTE: Order of code execution is presented as index (I, II or 1, 2). Order doesn't matter in folders with no indexing
 # AUTOMATED FINANCIAL DATA PIPELINE (PRICES AND FUNDAMENTALS)
 ## Project Overview
-This project implements an automated **financial data pipeline** that cleans, enriches, and aggregates stock price and fundamental data for analysis.
-The main goal is to to provide a **reliable, reproducible dataset** for quantitative research or portfolio analysis.
+This project implements an automated **financial data pipeline** that cleans, enriches, and aggregates stock price and fundamental data for analysis. The pipeline processes data for **73** Vietnamese companies from **2020 to 2025**, handling multiple financial statements and automatically resolving temporal mismatches between price and fundamental data.
 
 **Key highlights:**
-- Handles multiple tickers and multiple fundamental statements (Balance Sheet, Income Statement, Cashflow Statement, Ratios).
+- Processes multiple tickers across 5 industry sectors
+-  Handles multiple tickers and multiple fundamental statements (Balance Sheet, Income Statement, Cashflow Statement, Ratios).
 - Enriches data by leveraging patterns inherent in raw data with VBA.
-- Automatically bins price data to the most recent fundamental release (`public_date`).
+- Automatically bins price data to the most recent fundamental release (`public_date`) instead of end of quarter date, which avoids lookahead bias and supports event studies
 - Supports pivoting of selected indicators (e.g., ROA, ROE) and optional grouping by categories (e.g., Profitability, Valuation).
 - Optimized for performance by pre-filtering fundamentals and reducing unnecessary scans in SQL.
-- 
 ## Pipeline Architecture
 The pipeline is organized into the following stages:
-1. **Data Collection**
-    - Prices: from **vnstock** library in Python, imported into CSV.
-    - Fundamentals: from Vietstock, imported into xlxs file.
-2. **Data Cleaning & Enrichment**
-    - Automates aligning statements, adding valuable columns, removing redundant rows and vertically stacking all sheets via VBA (light weight transformation).
-      <img width="1919" height="785" alt="image" src="https://github.com/user-attachments/assets/65bc34d5-17df-41f2-8b7c-20861d040d9f" />
-<div align = "center"> Figure 1: Each date period corresponds to one column, which can be difficult for analysis </div>
-<br>
-    - Migrate to Python for heavier transformation, mainly for pivoting all date period into just one column and unifying date format for time series analysis.
-    <img width="1919" height="782" alt="image" src="https://github.com/user-attachments/assets/99614d5a-9f10-43b4-a9d5-9681ef51396f" />
-<div align = "center"> Figure 2: Fully pivoted dates </div>
-<br>
-    - Map prices to the most recent fundamental public_date.
-3. **Data Aggregation & Pivoting**
-    - Define relationship between Prices and Fundamentals for seamless join 
-    <img width="961" height="786" alt="image" src="https://github.com/user-attachments/assets/60d989da-784e-418c-af54-d2cbd5326fde" />
-    <div align = "center"> Figure 3: Prices and Fundamentals ERD defined using Star Schema </div>
-<br>
-    - Pivot key indicators into columns for easier analysis.
-    <img width="1211" height="552" alt="image" src="https://github.com/user-attachments/assets/ed2f3ebc-8812-4d35-951d-8e9c0f4f7fdd" />
+### Stage 1: Data Collection
 
-    - Supports toggling between individual indicators or category-based groups.
-4. **Output**
-    - Temporary or permanent dataset views for downstream analysis.
-    - Exportable CSV for Python analysis and plotting.
+#### Price Data
+- **Source:** vnstock Python library
+- **Frequency:** Daily trading data
+- **Coverage:** **[DATE RANGE]** for **[NUMBER]** companies
+- **Format:** CSV export with OHLCV data
+
+#### Fundamental Data
+- **Source:** **[SPECIFY: Vietstock API/manual export/web scraping]**
+- **Frequency:** Quarterly reporting (Q1, Q2, Q3, Q4)
+- **Coverage:** **Q3/2020 to Q2/2025** with **~500** financial indicators per company
+- **Format:** Excel workbooks with separate sheets per company
+
+### Stage 2: Data Cleaning & Enrichment (VBA)
+
+#### Pattern Recognition & Automation
+- Detects statement boundaries using patterns in raw data date formatting
+- Automatically categorizes indicators by statement type (Balance Sheet → "Earning Assets", Income Statement → "Net Interest", etc.)
+- Removes redundant rows such as header, summary rows
+- Vertically stacks **73** company sheets into unified dataset
+
+![Raw data structure](https://github.com/user-attachments/assets/65bc34d5-17df-41f2-8b7c-20861d040d9f)
+**Figure 1:** Raw data structure - each quarter as separate column
+
+
+### Stage 3: Temporal Transformation (Python)
+
+#### Date Pivot Logic
+- Converts wide format (quarters as columns) to long format (single date column)
+- Splits period strings (`Q3/2020`) into structured date formats (`2020-09-30`)
+- Generates `public_date` using industry-specific reporting lags:
+  - Banks: +30 days
+  - Metals & Mining: +20 days  
+  - Information Technology: +20 days
+  - Transportation: +28 days
+  - Oil, Gas & Consumable Fuels: +29 days
+
+![Pivoted temporal structure](https://github.com/user-attachments/assets/99614d5a-9f10-43b4-a9d5-9681ef51396f)
+**Figure 2:** Pivoted temporal structure for time-series analysis
+
+#### Lookahead Bias Prevention
+
+The pipeline calculates when fundamental information becomes publicly available, preventing unrealistic backtesting scenarios where future earnings data influences past trading decisions.
+
+### Stage 4: Data Integration & Star Schema (PostgreSQL)
+
+#### Database Design
+- **Companies** table: ticker → industry mapping
+- **Fundamentals** table: **~500** indicators with calculated `public_date`
+- **Prices** table: **~1300** daily price records
+- **Temporal binning**: Each price date mapped to most recent available fundamental
+
+![Star schema](https://github.com/user-attachments/assets/60d989da-784e-418c-af54-d2cbd5326fde)
+**Figure 3:** Star schema with natural keys (ticker, date)
+
+#### Join Logic
+```sql
+-- Bin each price date to most recent fundamental
+fundamental_date = MAX(f.date) WHERE f.date <= price_date
+```
+This ensures fundamental values stay fixed until `price_date` reaches a new `public_date`
+### Stage 5: Analytical Views & Pivoting
+#### Indicator Pivoting
+Selected fundamental metrics pivot from rows to columns, enabling correlation analysis and model feature engineering.
+<img width="1211" height="552" alt="image" src="https://github.com/user-attachments/assets/b421a2d2-c1c7-466d-8dc5-a8ca0ed6c088" />
+**Figure 4:**  Individual indicators (ROE, ROA) as columns
+
+#### Category-Based Grouping
+Indicators can be grouped by analytical purpose (Valuation, Profitability, Liquidity) for thematic analysis.
+<img width="1541" height="688" alt="image" src="https://github.com/user-attachments/assets/c9846613-a9d9-4799-880f-804c0a319274" />
+**Figure 5:** Category-grouped indicators for systematic analysis
+## Technical Specifications
+
+### Performance Benchmarks
+- **Database size:** **[256 MB]** for complete dataset
+- **Query performance:** **[48 ms]** average for pivoted views
+
+### Configurable Parameters
+- Industry reporting lags (modifiable by sector)
+- Indicator selection for pivoting
+- Date ranges for analysis
+- Ticker universe definition
+
+
