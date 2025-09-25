@@ -96,4 +96,17 @@ Indicators can be grouped by analytical purpose (Valuation, Profitability, Liqui
 - Date ranges for analysis
 - Ticker universe definition
 
+## Example Usage
+
+This chart demonstrates the pipeline's core functionality: aligning fundamental data with stock prices using calculated `public_date` to eliminate lookahead bias.
+
+<img width="1400" height="700" alt="image" src="https://github.com/user-attachments/assets/b6c4a0cb-478a-4829-b6f1-344d9c71f750" />
+
+**Figure 6:** CTG stock analysis showing indexed price movements vs. fundamental indicators (ROA, ROE)
+
+
+#### Temporal Alignment
+- **Step-function fundamentals:** ROA/ROE update only when quarterly data becomes public (~30 days after quarter-end for banks)
+- **Continuous price data:** Daily market movements show real-time investor sentiment  
+- **No lookahead bias:** Fundamental changes appear only after realistic reporting delays
 
