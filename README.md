@@ -17,11 +17,11 @@ The pipeline is organized into the following stages:
 #### Price Data
 - **Source:** vnstock Python library
 - **Frequency:** Daily trading data
-- **Coverage:** **[DATE RANGE]** for **[NUMBER]** companies
+- **Coverage:** **Q3/2020 to Q2/2025** for **60** companies
 - **Format:** CSV export with OHLCV data
 
 #### Fundamental Data
-- **Source:** **[SPECIFY: Vietstock API/manual export/web scraping]**
+- **Source:** **Vietstock web scraping**
 - **Frequency:** Quarterly reporting (Q1, Q2, Q3, Q4)
 - **Coverage:** **Q3/2020 to Q2/2025** with **~500** financial indicators per company
 - **Format:** Excel workbooks with separate sheets per company
