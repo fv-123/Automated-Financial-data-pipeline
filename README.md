@@ -11,6 +11,9 @@ This project implements an automated **financial data pipeline** that cleans, en
 - Supports pivoting of selected indicators (e.g., ROA, ROE) and optional grouping by categories (e.g., Profitability, Valuation).
 - Optimized for performance by pre-filtering fundamentals and reducing unnecessary scans in SQL.
 ## Pipeline Architecture
+### Flowchart
+<img width="720" height="2347" alt="image" src="https://github.com/user-attachments/assets/a3ba3ef0-429b-4a71-8307-a1d6b2247f4f" />
+
 The pipeline is organized into the following stages:
 ### Stage 1: Data Collection
 
