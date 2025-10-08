@@ -7,7 +7,7 @@ This project implements an automated **financial data pipeline** that cleans, en
 - Processes multiple tickers across 5 industry sectors
 -  Handles multiple tickers and multiple fundamental statements (Balance Sheet, Income Statement, Cashflow Statement, Ratios).
 - Enriches data by leveraging patterns inherent in raw data with VBA.
-- Automatically bins price data to the most recent fundamental release (`public_date`) instead of end of quarter date (this is super crucial, without this data, you're essentially using future information in your backtesting)
+- Automatically bins price data to the most recent fundamental release (`public_date`) instead of end of quarter date (this is super crucial! Without this information, you're essentially using future information in your backtesting)
 - Supports pivoting of selected indicators (e.g., ROA, ROE) and optional grouping by categories (e.g., Profitability, Valuation).
 - Optimized for performance by pre-filtering fundamentals and reducing unnecessary scans in SQL.
 ## Pipeline Architecture
@@ -111,5 +111,5 @@ This chart demonstrates the pipeline's core functionality: aligning fundamental 
 #### Temporal Alignment
 - **Step-function fundamentals:** ROA/ROE update only when quarterly data becomes public (~30 days after quarter-end for banks)
 - **Continuous price data:** Daily market movements show real-time investor sentiment  
-- **No lookahead bias:** Fundamental changes appear only after realistic reporting delays
+- **No lookahead bias:** Fundamental changes appear only after realistic reporting delays (However, this is only approximation, as I can't realiably get exact published date for each and every ticker).
 
